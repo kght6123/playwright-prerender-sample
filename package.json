@@ -1,0 +1,11 @@
+{
+  "name": "kght6123",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "kght6123",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "puppeteer": "^8.0.0"
+  }
+}
