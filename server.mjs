@@ -5,10 +5,10 @@ import { URL } from 'url';
 
 let browserWSEndpoint = null;
 const app = express();
-// const url = `http://localhost/index.html`;
-const url = `https://ecs.toranoana.jp/tora/ec/`;
-// const waitForSelector = '#toracotd';
+const url = `http://localhost/index.html`;
+// const url = `https://ecs.toranoana.jp/tora/ec/`;
 const waitForSelector = '#posts';
+// const waitForSelector = '#toracotd';
 // app.use(express.static('public'));
 // HTMLをプレレンダリングする
 app.get('/', async (req, res, next) => {
