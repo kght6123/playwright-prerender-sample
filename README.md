@@ -13,7 +13,7 @@ $ docker stop web # 停止
 $ docker inspect web # 状況確認
 
 # No SSR http://localhost/index.html
-# With SSR http://localhost:8080/
+# With SSR http://localhost:58080/
 ```
 
 ## Warning

@@ -6,14 +6,11 @@ import { URL } from 'url';
 let browserWSEndpoint = null;
 const app = express();
 const url = `http://localhost/index.html`;
-// const url = `https://ecs.toranoana.jp/tora/ec/`;
 const waitForSelector = '#posts';
-// const waitForSelector = '#toracotd';
-// app.use(express.static('public'));
 // HTMLをプレレンダリングする
 app.get('/', async (req, res, next) => {
   if (!browserWSEndpoint) {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ args: ["--ignore-certificate-errors"] });
     browserWSEndpoint = await browser.wsEndpoint();
   }
   console.log(url)
@@ -26,7 +23,7 @@ app.get('/', async (req, res, next) => {
 // cronジョブ等で、キャッシュをUpdateする
 app.get('/cron/update_cache', async (req, res) => {
   if (!browserWSEndpoint) {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ args: ["--ignore-certificate-errors"] });
     browserWSEndpoint = await browser.wsEndpoint();
   }
   if (!req.get('X-Appengine-Cron')) {
@@ -45,4 +42,4 @@ app.get('/cron/update_cache', async (req, res) => {
   res.status(200).send('Render cache updated!');
 });
 
-app.listen(8080, () => console.log('Server started http://localhost:8080/ Press Ctrl+C to quit'));
+app.listen(58080, () => console.log('Server started http://localhost:58080/ Press Ctrl+C to quit'));
