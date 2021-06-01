@@ -47,16 +47,22 @@ async function ssr(url, wsEndpoint, waitForSelector) {
     });
     console.log(`3`)
     const stylesheetContents = {};
+    const scriptContents = {};
     // 1. Stash the responses of local stylesheets.
     page.on('response', async resp => {
       const responseUrl = resp.url();
       const sameOrigin = new URL(responseUrl).origin === new URL(url).origin;
       const isStylesheet = resp.request().resourceType() === 'stylesheet';
-      console.log(responseUrl, sameOrigin, isStylesheet);
+      const isScript = resp.request().resourceType() === 'script';
+      console.log(responseUrl, resp.request().resourceType(), sameOrigin, isStylesheet, isScript);
       if (sameOrigin && isStylesheet) {
         // TODO: ここでstyleの縮小(min化)したり、不要なstyleの削除ができないかな？
         stylesheetContents[responseUrl] = await resp.text();
-        console.log(stylesheetContents[responseUrl]);
+        // console.log(stylesheetContents[responseUrl]);
+      }
+      if (sameOrigin && isScript) {
+        // TODO: ここでscriptの縮小(min化)したり、不要なscriptの削除ができないかな？
+        scriptContents[responseUrl] = await resp.text();
       }
     });
     console.log(`4`)
@@ -91,6 +97,18 @@ async function ssr(url, wsEndpoint, waitForSelector) {
         }
       });
     }, stylesheetContents);
+    // 4. Inline the Script
+    await page.$$eval('script[src]', (scripts, content) => {
+      scripts.forEach(script => {
+        const jsText = content[script.src];
+        if (jsText) {
+          const scriptEl = document.createElement('script');
+          scriptEl.textContent = jsText;
+          // FIXME: これをやるとscriptが動き始めるので、アクセスできなくてエラーになる
+          // script.replaceWith(scriptEl);
+        }
+      });
+    }, scriptContents);
     console.log(`7`)
     html = await page.content(); // serialized HTML of page DOM.
     console.log(`8`)
