@@ -11,17 +11,20 @@ const browserServer = await chromium.launchServer({ args: ['--ignore-certificate
 const wsEndpoint = await browserServer.wsEndpoint();
 console.info(`wsEndpoint ${wsEndpoint}`)
 
-const url = `http://localhost/index.html`;
+const url = `https://localhost`;
 const waitForSelector = '#posts'; // playwrightでは、現状は不要。
+
+// プレレンダリング対象の相対URLを設定する
 const prerenderUrlList = [
   '/',
+  '/index.html',
 ]
 
 // プレレンダリングするHTMLを設定する
 prerenderUrlList.forEach(prerenderUrl => {
   router
     .get(prerenderUrl, async (req, res, next) => {
-      const { html, ttRenderMs } = await prerender.ssr(url, wsEndpoint, waitForSelector);
+      const { html, ttRenderMs } = await prerender.ssr(url + prerenderUrl, wsEndpoint, waitForSelector);
       // Add Server-Timing! See https://w3c.github.io/server-timing/.
       res.set('Server-Timing', `Prerender;dur=${ttRenderMs};desc="Headless render time (ms)"`);
       return res.status(200).send(html); // Serve prerendered page as response.
