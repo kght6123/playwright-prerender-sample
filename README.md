@@ -1,4 +1,4 @@
-# Puppeteer Prerender Sample
+# Playwright Prerender Sample
 
 SSRやJSでレンダリングしている、レガシーなサイトの表示を高速化するためのサンプル
 
@@ -8,7 +8,7 @@ SSRやJSでレンダリングしている、レガシーなサイトの表示を
 # SSRサーバ起動
 $ node --experimental-modules server.mjs
 # HTTPサーバ起動
-$ docker run -it --rm -d -p 80:80 --name web -v /Volumes/Develop/kght6123/puppeteer-ssr/public:/usr/share/nginx/html nginx
+$ docker run -it --rm -d -p 80:80 --name web -v /Volumes/Develop/kght6123/playwright-ssr/public:/usr/share/nginx/html nginx
 $ docker stop web # 停止
 $ docker inspect web # 状況確認
 
