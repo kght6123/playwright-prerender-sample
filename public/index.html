@@ -1,5 +1,5 @@
 <html>
-  <link rel="stylesheet" href="./css/index.css" title="Index styles">
+  <link rel="stylesheet" href="./css/index.css" title="Index styles" />
   <body>
     <div id="container">
       <!-- Populated by the JS below. -->
@@ -14,33 +14,34 @@
             <div class="summary">${post.summary}</div>
             <p>${post.content}</p>
           </li>`;
-      }, '');
+      }, "");
 
       // CAREFUL: assumes html is sanitized.
       container.innerHTML = `<ul id="posts">${html}</ul>`;
     }
 
-    (async() => {
+    (async () => {
       const params = new URL(location.href).searchParams;
-      const RENDERING_IN_HEADLESS = params.has('headless');
+      const RENDERING_IN_HEADLESS = params.has("headless");
       if (RENDERING_IN_HEADLESS) {
-        // Being rendered by headless Chrome on the server.
-        // e.g. shut off features, don't lazy load non-essential resources, etc.
-      }
-      const container = document.querySelector('#container');
-      // Posts markup is already in DOM if we're seeing a SSR'd.
-      // Don't re-hydrate the posts here on the client.
-      const PRE_RENDERED = container.querySelector('#posts');
-      if (!PRE_RENDERED) {
-        const posts = await fetch('/posts.json').then(resp => resp.json());
-        renderPosts(posts, container);
+        // ヘッドレスブラウザで実行された時のみ、実行したい処理を書く
+      } else {
+        // ヘッドレスブラウザで実行されてない時に実行したい処理を書く
+        // Ajax とか Fetch とか
+        const container = document.querySelector("#container");
+        const PRE_RENDERED = container.querySelector("#posts");
+        if (!PRE_RENDERED) {
+          const posts = await fetch("/posts.json").then((resp) => resp.json());
+          renderPosts(posts, container);
+        }
       }
     })();
   </script>
   <script>
     // Server-Timing API
-    const entry = performance.getEntriesByType('navigation').find(
-      e => e.name === location.href);
-    console.log('Server-Timing API', entry.serverTiming[0].toJSON());
+    const entry = performance
+      .getEntriesByType("navigation")
+      .find((e) => e.name === location.href);
+    console.log("Server-Timing API", entry.serverTiming[0].toJSON());
   </script>
 </html>

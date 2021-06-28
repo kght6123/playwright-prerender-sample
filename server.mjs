@@ -7,6 +7,7 @@ const app = express();
 const router = express.Router();
 
 // https://playwright.dev/docs/next/api/class-browsertype
+// Playwright のエンドポイントを作る
 const browserServer = await chromium.launchServer({ args: ['--ignore-certificate-errors', '--lang=ja,en-US,en'] });
 const wsEndpoint = await browserServer.wsEndpoint();
 console.info(`wsEndpoint ${wsEndpoint}`)
@@ -19,15 +20,15 @@ const prerenderUrlList = [
   '/',
   '/index.html',
 ]
-
-// プレレンダリングするHTMLを設定する
+// プレレンダリング対象のURLでルーターを作る
 prerenderUrlList.forEach(prerenderUrl => {
   router
     .get(prerenderUrl, async (req, res, next) => {
+      // プレレンダリングする
       const { html, ttRenderMs } = await prerender.ssr(url + prerenderUrl, wsEndpoint, waitForSelector);
-      // Add Server-Timing! See https://w3c.github.io/server-timing/.
+      // レスポンスを返す
       res.set('Server-Timing', `Prerender;dur=${ttRenderMs};desc="Headless render time (ms)"`);
-      return res.status(200).send(html); // Serve prerendered page as response.
+      return res.status(200).send(html);
     })
 });
 
