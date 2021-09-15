@@ -1,6 +1,6 @@
 # Playwright Prerender Sample
 
-SSRやJSでレンダリングしている、レガシーなサイトの表示を高速化するためのサンプル
+SSR や JS でレンダリングしている、レガシーなサイトの表示を高速化するためのサンプル
 
 ## Run
 
@@ -18,7 +18,7 @@ $ docker inspect web # 状況確認
 
 ## Warning
 
-すでにNginxが起動している場合は止めておく
+すでに Nginx が起動している場合は止めておく
 
 ```sh
 # プロセスを確認
