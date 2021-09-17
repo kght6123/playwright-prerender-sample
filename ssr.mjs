@@ -31,12 +31,11 @@ async function ssr(url, wsEndpoint, waitForSelector) {
           'ga.js',
           'analytics.js',
         ]
-        console.log(`url=${url}`)
         if (blocklist.find((regex) => url.toString().match(regex))) {
-          console.log(`yes`)
+          // console.log(`yes`, `url=${url}`)
           return true
         } else {
-          console.log(`no`)
+          // console.log(`no`, `url=${url}`)
           return false
         }
       },
@@ -46,13 +45,17 @@ async function ssr(url, wsEndpoint, waitForSelector) {
     // (images, stylesheets, media).
     await page.route(
       () => true,
-      (route, req) => {
+      async (route, req) => {
         const allowlist = ['document', 'script', 'xhr', 'fetch', 'stylesheet']
         if (!allowlist.includes(req.resourceType())) {
-          route.abort()
+          await route.abort().catch((e) => {
+            console.error('route.abort error.', e, req.url())
+          })
         } else {
           // 3. Pass through all other requests.
-          route.continue()
+          await route.continue().catch((e) => {
+            console.error('route.continue error.', e, req.url())
+          })
         }
       }
     )
@@ -65,13 +68,15 @@ async function ssr(url, wsEndpoint, waitForSelector) {
       const sameOrigin = new URL(responseUrl).origin === new URL(url).origin
       const isStylesheet = resp.request().resourceType() === 'stylesheet'
       const isScript = resp.request().resourceType() === 'script'
-      console.log(
-        responseUrl,
-        resp.request().resourceType(),
-        sameOrigin,
-        isStylesheet,
-        isScript
-      )
+      if (responseUrl.indexOf('jquery') > 0) {
+        console.log(
+          responseUrl,
+          resp.request().resourceType(),
+          sameOrigin,
+          isStylesheet,
+          isScript
+        )
+      }
       if (sameOrigin && isStylesheet) {
         // TODO: ここでstyleの縮小(min化)したり、不要なstyleの削除ができないかな？
         stylesheetContents[responseUrl] = await resp.text()
@@ -105,6 +110,8 @@ async function ssr(url, wsEndpoint, waitForSelector) {
     await page.$$eval(
       'link[rel="stylesheet"]',
       (links, content) => {
+        // ここのログは、Headless側のコンソールで確認すること
+        console.log('------------------ link ---------------------')
         links.forEach((link) => {
           const cssText = content[link.href]
           if (cssText) {
@@ -119,20 +126,37 @@ async function ssr(url, wsEndpoint, waitForSelector) {
     // 4. Inline the Script
     await page.$$eval(
       'script[src]',
-      (scripts, content) => {
+      (scripts, { scriptContents }) => {
+        // ここのログは、Headless側のコンソールで確認すること
+        console.log(
+          '------------------ scripts ---------------------',
+          scripts,
+          scriptContents
+        )
         scripts.forEach((script) => {
-          const jsText = content[script.src]
+          const jsText = scriptContents[script.src]
+          if (script.src.indexOf('jquery') > 0) {
+            console.log('jsText', script.src, jsText)
+          }
           if (jsText) {
             const scriptEl = document.createElement('script')
             scriptEl.textContent = jsText
-            // FIXME: これをやるとscriptが動き始めるので、アクセスできなくてエラーになる
-            // script.replaceWith(scriptEl);
+            script.replaceWith(scriptEl)
           }
         })
       },
-      scriptContents
+      { scriptContents }
     )
     console.log(`7`)
+    console.log(
+      '-- S -------------- waitForTimeout ----------------------------'
+    )
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(3000)
+    console.log(
+      '-- E -------------- waitForTimeout ----------------------------'
+    )
+    // await page.pause() // TODO: Dev Toolに`playwright.resume()`と入力するまで停止
     html = await page.content() // serialized HTML of page DOM.
     console.log(`8`)
   } finally {
